@@ -166,8 +166,11 @@ const Booking = ({
       }, 3000);
     } catch (error) {
       setLoading(false);
+      const conflictMessage = error?.response?.data?.message;
       setError(
-        "There was a problem submitting your booking. Please try again.",
+        error?.response?.status === 409 && conflictMessage
+          ? conflictMessage
+          : "There was a problem submitting your booking. Please try again.",
       );
     }
   };
@@ -247,34 +250,11 @@ const Booking = ({
       const response = await axios.get(
         `https://end8.vercel.app/bookings/unavailable-times?date=${formattedDate}`,
       );
-      const bookedTimes = response.data;
-
-      // Block the booked time, the next 2 hours, and the 1.5 hours before the booking
-      const extendedBlockedTimes = new Set();
-      bookedTimes.forEach((time) => {
-        const bookingMoment = moment(time, "HH:mm");
-
-        // Block the booked time itself
-        extendedBlockedTimes.add(bookingMoment.format("HH:mm"));
-
-        // Block 2 hours after the booked time (4 slots of 30 minutes each)
-        const afterMoment = moment(time, "HH:mm");
-        for (let i = 1; i <= 4; i++) {
-          afterMoment.add(30, "minutes");
-          extendedBlockedTimes.add(afterMoment.format("HH:mm"));
-        }
-
-        // Block 1.5 hours before the booked time (3 slots of 30 minutes each)
-        const beforeMoment = moment(time, "HH:mm");
-        for (let i = 1; i <= 3; i++) {
-          beforeMoment.subtract(30, "minutes");
-          extendedBlockedTimes.add(beforeMoment.format("HH:mm"));
-        }
-      });
-
-      const available = allTimes.filter(
-        (time) => !extendedBlockedTimes.has(time),
+      // Backend already blocks by duration for ALL services on that day
+      const blockedTimes = new Set(
+        Array.isArray(response.data) ? response.data : [],
       );
+      const available = allTimes.filter((time) => !blockedTimes.has(time));
       setAvailableTimes(available);
     } catch (error) {
       setAvailableTimes([]);
@@ -369,33 +349,11 @@ const Booking = ({
           const response = await axios.get(
             `https://end8.vercel.app/bookings/unavailable-times?date=${formattedDate}`,
           );
-          const bookedTimes = response.data;
-
-          const extendedBlockedTimes = new Set();
-          bookedTimes.forEach((time) => {
-            const bookingMoment = moment(time, "HH:mm");
-
-            // Block the booked time itself
-            extendedBlockedTimes.add(bookingMoment.format("HH:mm"));
-
-            // Block 2 hours after the booked time (4 slots of 30 minutes each)
-            const afterMoment = moment(time, "HH:mm");
-            for (let i = 1; i <= 4; i++) {
-              afterMoment.add(30, "minutes");
-              extendedBlockedTimes.add(afterMoment.format("HH:mm"));
-            }
-
-            // Block 1.5 hours before the booked time (3 slots of 30 minutes each)
-            const beforeMoment = moment(time, "HH:mm");
-            for (let i = 1; i <= 3; i++) {
-              beforeMoment.subtract(30, "minutes");
-              extendedBlockedTimes.add(beforeMoment.format("HH:mm"));
-            }
-          });
-
-          const available = allTimes.filter(
-            (time) => !extendedBlockedTimes.has(time),
+          // Backend already blocks by duration for ALL services on that day
+          const blockedTimes = new Set(
+            Array.isArray(response.data) ? response.data : [],
           );
+          const available = allTimes.filter((time) => !blockedTimes.has(time));
           setAvailableTimes(available);
         } catch (error) {
           setAvailableTimes([]);
