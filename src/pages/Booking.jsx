@@ -389,7 +389,11 @@ const Booking = () => {
     // When location state changes (including browser back/forward), update currentStep
     // Only update if step is different to avoid unnecessary re-renders
     if (location.state?.step && location.state.step !== currentStep) {
-      const newStep = location.state.step;
+      // A refresh restores the step from history but not the selections it
+      // depends on, so cap it at the furthest step we can actually render.
+      let newStep = location.state.step;
+      if (newStep >= 3 && !selectedPackage) newStep = selectedServiceCategory ? 2 : 1;
+      if (newStep === 2 && !selectedServiceCategory) newStep = 1;
       // Validate step exists in our booking flow
       if (newStep >= 1 && newStep <= 5) {
         isNavigatingFromHistory.current = true;
