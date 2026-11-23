@@ -249,10 +249,9 @@ const Booking = () => {
   const handleDateChange = async (date) => {
     setSelectedDate(date);
     setSelectedTime("");
-    const formattedDate = moment(date)
-      .tz("America/Edmonton")
-      .set({ hour: 12, minute: 0 })
-      .format("YYYY-MM-DD");
+    // Use the calendar day as clicked; converting to Edmonton first shifts it
+    // back a day for visitors east of Calgary (e.g. Toronto, Lagos).
+    const formattedDate = moment(date).format("YYYY-MM-DD");
 
     let allTimes = [];
     const dayOfWeek = moment(date).day();

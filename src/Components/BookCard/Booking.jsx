@@ -178,10 +178,9 @@ const Booking = ({
   const handleDateChange = async (date) => {
     setSelectedDate(date);
     setWeekendMessage("");
-    const formattedDate = moment(date)
-      .tz("America/Edmonton")
-      .set({ hour: 12, minute: 0 })
-      .format("YYYY-MM-DD");
+    // Use the calendar day as clicked; converting to Edmonton first shifts it
+    // back a day for visitors east of Calgary (e.g. Toronto, Lagos).
+    const formattedDate = moment(date).format("YYYY-MM-DD");
     setFormData((prev) => ({
       ...prev,
       date: moment(date).format("YYYY-MM-DD"),
@@ -283,10 +282,7 @@ const Booking = ({
       // Only fetch times if we're starting from step 4 (details)
       // For step 3, times are already fetched in the parent component
       const fetchUnavailableTimes = async () => {
-        const formattedDate = moment(selectedDate)
-          .tz("America/Edmonton")
-          .set({ hour: 12, minute: 0 })
-          .format("YYYY-MM-DD");
+        const formattedDate = moment(selectedDate).format("YYYY-MM-DD");
 
         let allTimes = [];
         const dayOfWeek = moment(selectedDate).day();
